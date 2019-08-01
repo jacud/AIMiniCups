@@ -1,4 +1,5 @@
 const readline = require('readline');
+//import Logger from 'logger.js'
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -6,8 +7,8 @@ const rl = readline.createInterface({
 });
 
 const commands = ['left', 'right', 'up', 'down'];
-const gameStartOptions = {}
-let currentPosition = {}
+const gameStartOptions = {};
+let currentPosition = {};
 
 const fillGameStartOptions = (obj) => {
     gameStartOptions.height = obj.params.y_cells_count;
@@ -20,6 +21,8 @@ const fillCurrentPosition = (stateObj) => {
     currentPosition = stateObj.params.players['i'].position;
     currentPosition.direction =  commands.indexOf(stateObj.params.players['i'].direction);
 };
+
+//const gameLogger = new Logger(new Date().getTime().toString()+'.log');
 
 const calculateNewCurrentPosition = (direction) => {
     let tmpDirection = direction;
@@ -36,6 +39,7 @@ const calculateNewCurrentPosition = (direction) => {
     } else {
         newPosition.y -= ((tmpDirection - 2) * 2 - 1)*gameStartOptions.speed
     }
+	newPosition.direction = tmpDirection;
     return newPosition;
 };
 
@@ -48,7 +52,7 @@ const checkIsSuicideMove = (direction, stateObj) => {
         return true;
     }
 
-    let tailBlock = stateObj.params.players['i'].lines.find(block => block.x === newState.x && block.y === newState.y);
+    let tailBlock = stateObj.params.players['i'].lines.find(block => block.x == newState.x && block.y == newState.y);
     return !!tailBlock;
 };
 
@@ -69,14 +73,23 @@ let handler = (state) => {
     let direction = 1;
 
     if (stateObj.type === 'start_game'){
+		//gameLogger.log("gameLogger started");
         fillGameStartOptions(stateObj);
         isJustStarted = true;
     }
 
+	if (stateObj.type === 'end_game'){
+        fillGameStartOptions(stateObj);
+		//gameLogger.log("gameLogger stopped");
+		//gameLogger.SaveLog();
+    }
+
     if (stateObj.type === 'tick' && isJustStarted){
-        fillCurrentPosition(stateObj)
+        fillCurrentPosition(stateObj);
+		direction = findNewDirection(stateObj)
         isJustStarted = false;
     } else if (stateObj.type === 'tick') {
+		fillCurrentPosition(stateObj);
         direction = findNewDirection(stateObj)
         currentPosition = calculateNewCurrentPosition(direction)
     }
