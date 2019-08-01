@@ -1,4 +1,5 @@
 const readline = require('readline');
+import Logger from 'logger.js'
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -21,6 +22,8 @@ const fillCurrentPosition = (stateObj) => {
     currentPosition.direction =  commands.indexOf(stateObj.params.players['i'].direction);
 };
 
+const gameLogger = new Logger(new Date().getTime().toString()+'.log');
+
 const calculateNewCurrentPosition = (direction) => {
     let tmpDirection = direction;
     const newPosition =  {... currentPosition}
@@ -32,10 +35,11 @@ const calculateNewCurrentPosition = (direction) => {
         tmpDirection = currentPosition.direction
     }
     if (tmpDirection < 2) {
-        newPosition.x += (tmpDirection * 2 - 1)*gameStartOptions.speed
+        newPosition.y += (tmpDirection * 2 - 1)*gameStartOptions.speed
     } else {
-        newPosition.y -= ((tmpDirection - 2) * 2 - 1)*gameStartOptions.speed
+        newPosition.x -= ((tmpDirection - 2) * 2 - 1)*gameStartOptions.speed
     }
+	newPosition.direction = tmpDirection;
     return newPosition;
 };
 
@@ -69,14 +73,24 @@ let handler = (state) => {
     let direction = 1;
 
     if (stateObj.type === 'start_game'){
+		gameLogger.log("gameLogger started");
         fillGameStartOptions(stateObj);
         isJustStarted = true;
     }
+	
+	if (stateObj.type === 'end_game'){
+        fillGameStartOptions(stateObj);
+        isJustStarted = true;
+		gameLogger.log("gameLogger stopped");
+		gameLogger.SaveLog();
+    }
 
     if (stateObj.type === 'tick' && isJustStarted){
-        fillCurrentPosition(stateObj)
+        fillCurrentPosition(stateObj);
+		direction = findNewDirection(stateObj)
         isJustStarted = false;
     } else if (stateObj.type === 'tick') {
+		fillCurrentPosition(stateObj);
         direction = findNewDirection(stateObj)
         currentPosition = calculateNewCurrentPosition(direction)
     }
