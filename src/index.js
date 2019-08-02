@@ -14,7 +14,7 @@ const fillGameStartOptions = (obj) => {
     gameStartOptions.height = obj.params.y_cells_count;
     gameStartOptions.width = obj.params.x_cells_count;
     gameStartOptions.speed = obj.params.speed;
-    gameStartOptions.xell_size = obj.params.width;
+    gameStartOptions.cell_size = obj.params.width;
 };
 
 const fillCurrentPosition = (stateObj) => {
@@ -35,9 +35,9 @@ const calculateNewCurrentPosition = (direction) => {
         tmpDirection = currentPosition.direction
     }
     if (tmpDirection < 2) {
-        newPosition.x += (tmpDirection * 2 - 1)*gameStartOptions.speed
+        newPosition.x += (tmpDirection * 2 - 1)*gameStartOptions.speed;
     } else {
-        newPosition.y -= ((tmpDirection - 2) * 2 - 1)*gameStartOptions.speed
+        newPosition.y -= ((tmpDirection - 2) * 2 - 1)*gameStartOptions.speed;
     }
 	newPosition.direction = tmpDirection;
     return newPosition;
@@ -45,14 +45,19 @@ const calculateNewCurrentPosition = (direction) => {
 
 const checkIsSuicideMove = (direction, stateObj) => {
     let newState = calculateNewCurrentPosition(direction);
-    if (newState.x < 0 || newState.x >= gameStartOptions.width ){
+    if (newState.x < 0 || newState.x >= gameStartOptions.width*gameStartOptions.cell_size){
         return true;
     }
-    if (newState.y < 0 || newState.y >= gameStartOptions.height ){
+    if (newState.y < 0 || newState.y >= gameStartOptions.height*gameStartOptions.cell_size){
         return true;
     }
 
-    let tailBlock = stateObj.params.players['i'].lines.find(block => block.x == newState.x && block.y == newState.y);
+    let tailBlock = stateObj.params.players['i'].lines.find(block => 
+		(
+			(block.x >= newState.x && block.x <= newState.x + gameStartOptions.cell_size) &&
+			(block.y >= newState.y && block.y <= newState.y + gameStartOptions.cell_size)
+		)
+	);
     return !!tailBlock;
 };
 
