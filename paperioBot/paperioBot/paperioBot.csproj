@@ -46,12 +46,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="InternalClasses\Directions.cs" />
-    <Compile Include="InternalClasses\GameLogger.cs" />
+    <Compile Include="Helpers\CollisionHelper.cs" />
+    <Compile Include="Helpers\DirectionHelper.cs" />
+    <Compile Include="Helpers\GameLogger.cs" />
+    <Compile Include="Helpers\MotionHelper.cs" />
     <Compile Include="InternalClasses\GameParams.cs" />
+    <Compile Include="InternalClasses\IWorldParam.cs" />
     <Compile Include="InternalClasses\Player.cs" />
-    <Compile Include="InternalClasses\Position.cs" />
-    <Compile Include="InternalClasses\WorldParams.cs" />
+    <Compile Include="InternalClasses\State.cs" />
+    <Compile Include="InternalClasses\WorldTickParams.cs" />
+    <Compile Include="InternalClasses\WorldStartParams.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

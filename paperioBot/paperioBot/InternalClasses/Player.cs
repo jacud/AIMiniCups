@@ -6,9 +6,9 @@ namespace paperioBot.InternalClasses
 	{
 		public int score { get; set; }
 
-		public IEnumerable<Position> lines { get; set; }
+		public IEnumerable<int[]> lines { get; set; }
 
-		public Position position { get; set; }
+		public int[] position { get; set; }
 
 		public string direction { get; set; }
 	}
