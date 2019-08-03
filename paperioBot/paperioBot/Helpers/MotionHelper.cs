@@ -1,5 +1,4 @@
 ﻿using paperioBot.InternalClasses;
-using System;
 
 namespace paperioBot.Helpers
 {
@@ -10,9 +9,20 @@ namespace paperioBot.Helpers
 			var newState = new State(currentState);
 			var way = DirectionHelper.Way(direction);
 			var currentStateWay = DirectionHelper.Way(currentState.direction);
+			var correctionDeltas = DirectionHelper.CorrectionDeltas;
 
-			if (currentStateWay != -1 && way /2 == currentStateWay/2) {
-				way = currentStateWay;
+			if (currentStateWay != -1 && DirectionHelper.CheckIsDerectionsComplanar(way,currentStateWay))
+			{
+				return null;
+			}
+
+			if (currentStateWay < 2)
+			{
+				newState.position[0] += (currentStateWay * 2 - 1) * stepSize + correctionDeltas[0];
+			}
+			else
+			{
+				newState.position[1] -= (currentStateWay * 2 - 5) * stepSize + correctionDeltas[1];
 			}
 
 			if (way < 2)

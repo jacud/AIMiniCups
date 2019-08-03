@@ -11,8 +11,20 @@ namespace paperioBot.Helpers
 
 		private static string FileName = DateTime.UtcNow.Ticks.ToString() + ".log";
 
+		private static bool _isActive = false;
+
+		public static void On()
+		{
+			_isActive = true;
+		}
+
 		public static void Log(object obj)
 		{
+			if (!_isActive)
+			{
+				return;
+			}
+
 			logs.Add(JsonConvert.SerializeObject(obj));
 			logs.Add(Environment.NewLine);
 		}
@@ -25,6 +37,11 @@ namespace paperioBot.Helpers
 
 		public static void SaveLogs()
 		{
+			if (!_isActive)
+			{
+				return;
+			}
+
 			if (!File.Exists(FileName))
 			{
 				using (StreamWriter sw = File.CreateText(FileName))
@@ -39,6 +56,11 @@ namespace paperioBot.Helpers
 
 		public static void SavePartialLogs()
 		{
+			if (!_isActive)
+			{
+				return;
+			}
+
 			if (!File.Exists(FileName))
 			{
 				using (StreamWriter sw = File.CreateText(FileName))

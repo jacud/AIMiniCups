@@ -30,17 +30,18 @@ namespace paperioBot
 
 		static void Main(string[] args)
 		{
-			var isFirstStep = true;
+			GameLogger.On();
+			var step = 0;
 			string direction = null;
 			while (true)
 			{
 				var input = Console.ReadLine();
-				if (isFirstStep)
+				if (step == 0)
 				{
 					_startParams = JsonConvert.DeserializeObject<GameParams<WorldStartParams>>(input).@params;
 					CollisionHelper.SetStartParams(_startParams);
-					direction = CollisionHelper.FindNewDirection(null, null);
-					isFirstStep = false;
+					DirectionHelper.SetStartParams(_startParams);
+					direction = DirectionHelper.FindNewDirection(null, null);
 				}
 				else
 				{
@@ -48,17 +49,20 @@ namespace paperioBot
 					{
 						_currentParams = JsonConvert.DeserializeObject<GameParams<WorldTickParams>>(input);
 						GetMyPosition();
-						direction = CollisionHelper.FindNewDirection(myState, _currentParams);
+						direction = DirectionHelper.FindNewDirection(myState, _currentParams);
 					}
 					catch (Exception)
 					{
 					}
 				}
-				
+
+				GameLogger.Log("Iteration #" + step);
 				GameLogger.Log(input);
+				GameLogger.Log(direction);
 				GameLogger.SavePartialLogs();
 				
 				Console.WriteLine("{{\"command\": \"{0}\"}}", direction);
+				step++;
 			}
 		}
 	}
