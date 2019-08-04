@@ -35,28 +35,29 @@ namespace paperioBot.Helpers
 			return tailBlocks.Any();
 		}
 
-		public static bool CheckBorderCollision(State currentState)
+		public static bool CheckBorderCollision(State currentState, int[] fieldCorrection)
 		{
 			if (currentState == null)
 			{
 				return false;
 			}
 
-			if (currentState.position[0] <= 0 || currentState.position[1] <= _startParams.speed)
+			if (currentState.position[0] <= 0 + fieldCorrection[0] || currentState.position[1] <= fieldCorrection[1] +_startParams.speed)
 			{
 				return true;
 			}
 
-			if (currentState.position[0] >= _startParams.x_cells_count* _startParams.width || currentState.position[1] >= _startParams.y_cells_count* _startParams.width )
+			if (currentState.position[0] >= _startParams.x_cells_count* _startParams.width - fieldCorrection[2] || currentState.position[1] >= _startParams.y_cells_count* _startParams.width - fieldCorrection[3])
 			{
 				return true;
 			}
 			return false;
 		}
 
-		public static bool CheckDirectionForSuicide(State currentState, WorldTickParams currentParams)
+		public static bool CheckDirectionForSuicide(State currentState, WorldTickParams currentParams, int[] fieldCorrection = null)
 		{
-			return CheckBorderCollision(currentState) || CheckTailCollision(currentState, currentParams);
+			var correction = fieldCorrection != null ? fieldCorrection : new[] {0, 0, 0, 0};
+			return CheckBorderCollision(currentState, correction) || CheckTailCollision(currentState, currentParams);
 		}
 
 		public static bool CheckIsInHome(State currentState, WorldTickParams tickParams)

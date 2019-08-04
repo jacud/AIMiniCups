@@ -13,10 +13,10 @@ namespace paperioBot.Strategies
 
 		public CrazyRandomStrategy(WorldTickParams currentTickParams) : base(currentTickParams) {}
 
-		public override int SelectDirection(WorldStartParams startParams, State currentState, WorldTickParams currentParams)
+		public override int SelectDirection(WorldStartParams startParams, State currentState)
 		{
 			int index = random.Next(0, DirectionHelper.DirectionsCount);
-			if (currentState != null && currentParams != null)
+			if (currentState != null && _currentTickParams!= null)
 			{
 				var forbiddenDirections = new List<int>();
 				var isSuicide = true;
@@ -26,7 +26,7 @@ namespace paperioBot.Strategies
 					if (newState != null)
 					{
 						index = DirectionHelper.Way(newState.direction);
-						isSuicide = CollisionHelper.CheckDirectionForSuicide(newState, currentParams);
+						isSuicide = CollisionHelper.CheckDirectionForSuicide(newState, _currentTickParams);
 					}
 					else
 					{

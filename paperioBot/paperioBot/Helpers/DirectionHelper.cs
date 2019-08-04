@@ -62,12 +62,37 @@ namespace paperioBot.Helpers
 				return null;
 			}
 			_strategy.MutateStates(currentParams.@params);
-			var newWay = _strategy.SelectDirection(_startParams, currentState, currentParams.@params);
+			var newWay = _strategy.SelectDirection(_startParams, currentState);
 			if (FirstWay == -1)
 			{
 				FirstWay = newWay;
 			}
 			return Direction(newWay);
+		}
+
+		public static int GetDirectionToPosition(State currentState, int[] cell)
+		{
+			if (currentState.position[0] == cell[0])
+			{
+				if (cell[1] > currentState.position[1])
+				{
+					return 2;
+				} else {
+					return 3;
+				}
+			} else if (currentState.position[1] == cell[1])
+			{
+				if (cell[0] > currentState.position[0])
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}
+
+			throw new ArgumentOutOfRangeException();
 		}
 	}
 }

@@ -59,7 +59,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Strategies\CrazyRandomStrategy.cs" />
-    <Compile Include="Strategies\GreedyStrategy.cs" />
+    <Compile Include="Strategies\GreedyCubeStrategy.cs" />
     <Compile Include="Strategies\IStrategy.cs" />
   </ItemGroup>
   <ItemGroup>
