@@ -27,8 +27,8 @@ namespace paperioBot.Helpers
 			var tailBlocks = currentParams.players["i"].lines.Where(block =>
 			{
 				return (
-					Math.Abs(block[0] - currentState.position[0]) < 15 &&
-					Math.Abs(block[1] - currentState.position[1]) < 15
+					block[0] == currentState.position[0] &&
+					block[1] == currentState.position[1]
 				);
 			});
 			var railVlocksCount = tailBlocks.Count();
@@ -42,12 +42,12 @@ namespace paperioBot.Helpers
 				return false;
 			}
 
-			if (currentState.position[0] <= 0 || currentState.position[1] <= 0)
+			if (currentState.position[0] <= 0 || currentState.position[1] <= _startParams.speed)
 			{
 				return true;
 			}
 
-			if (currentState.position[0] >= _startParams.x_cells_count* _startParams.width - _startParams.width/2 || currentState.position[1] >= _startParams.y_cells_count* _startParams.width - _startParams.width / 2)
+			if (currentState.position[0] >= _startParams.x_cells_count* _startParams.width || currentState.position[1] >= _startParams.y_cells_count* _startParams.width )
 			{
 				return true;
 			}

@@ -30,7 +30,7 @@ namespace paperioBot
 
 		static void Main(string[] args)
 		{
-			GameLogger.On();
+			//GameLogger.On();
 			var step = 0;
 			string direction = null;
 			while (true)
