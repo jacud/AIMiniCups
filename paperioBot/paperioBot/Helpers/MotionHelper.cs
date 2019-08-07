@@ -11,18 +11,21 @@ namespace paperioBot.Helpers
 			var currentStateWay = DirectionHelper.Way(currentState.direction);
 			var correctionDeltas = DirectionHelper.CorrectionDeltas;
 
-			if (currentStateWay != -1 && DirectionHelper.CheckIsDerectionsComplanar(way,currentStateWay))
+			if (currentStateWay != -1)
 			{
-				return null;
+				if (currentStateWay < 2)
+				{
+					newState.position[0] += (currentStateWay * 2 - 1) * stepSize + correctionDeltas[0];
+				}
+				else
+				{
+					newState.position[1] -= (currentStateWay * 2 - 5) * stepSize + correctionDeltas[1];
+				}
 			}
 
-			if (currentStateWay < 2)
+			if (DirectionHelper.CheckIsDerectionsComplanar(way, currentStateWay))
 			{
-				newState.position[0] += (currentStateWay * 2 - 1) * stepSize + correctionDeltas[0];
-			}
-			else
-			{
-				newState.position[1] -= (currentStateWay * 2 - 5) * stepSize + correctionDeltas[1];
+				way = currentStateWay;
 			}
 
 			if (way < 2)

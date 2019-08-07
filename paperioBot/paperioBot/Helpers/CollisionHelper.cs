@@ -31,7 +31,6 @@ namespace paperioBot.Helpers
 					block[1] == currentState.position[1]
 				);
 			});
-			var railVlocksCount = tailBlocks.Count();
 			return tailBlocks.Any();
 		}
 
@@ -42,7 +41,7 @@ namespace paperioBot.Helpers
 				return false;
 			}
 
-			if (currentState.position[0] <= 0 + fieldCorrection[0] || currentState.position[1] <= fieldCorrection[1] +_startParams.speed)
+			if (currentState.position[0] < _startParams.width/2 + fieldCorrection[0] || currentState.position[1] <= fieldCorrection[1] + _startParams.width / 2)
 			{
 				return true;
 			}

@@ -28,10 +28,7 @@ namespace paperioBot.Strategies
 						index = DirectionHelper.Way(newState.direction);
 						isSuicide = CollisionHelper.CheckDirectionForSuicide(newState, _currentTickParams);
 					}
-					else
-					{
-						isSuicide = true;
-					}
+
 					if (isSuicide && forbiddenDirections.Count < DirectionHelper.DirectionsCount)
 					{
 						forbiddenDirections.Add(index);

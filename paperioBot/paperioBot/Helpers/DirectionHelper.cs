@@ -10,7 +10,7 @@ namespace paperioBot.Helpers
 
 		private static string[] directions = new[] { "left", "right", "up", "down" };
 
-		private static Strategy _strategy = new GreedyCubeStrategy();
+		private static Strategy _strategy = new CrazyRandomStrategy();
 
 		public static int DirectionsCount => directions.Length;
 
