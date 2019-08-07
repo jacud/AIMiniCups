@@ -30,8 +30,14 @@ namespace paperioBot.Strategies
 					var newState = MotionHelper.MoveToDirection(DirectionHelper.Direction(index), startParams.width, currentState);
 					if (newState != null)
 					{
-						index = DirectionHelper.Way(newState.direction);
 						isSuicide = CollisionHelper.CheckDirectionForSuicide(newState, CurrentTickParams);
+						var newIndex = DirectionHelper.Way(newState.direction);
+						if (newIndex != index)
+						{
+							forbiddenDirections.Add(index);
+						}
+
+						index = newIndex;
 					}
 
 					if (isSuicide && forbiddenDirections.Count < DirectionHelper.DirectionsCount)
@@ -41,11 +47,6 @@ namespace paperioBot.Strategies
 						{
 							index = random.Next(0, DirectionHelper.DirectionsCount);
 						}
-					}
-
-					if (forbiddenDirections.Count < DirectionHelper.DirectionsCount)
-					{
-						isSuicide = false;
 					}
 				}
 			}
