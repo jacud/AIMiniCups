@@ -17,17 +17,6 @@ namespace paperioBot
 
 		#endregion
 
-		#region Methods
-
-		private static void GetMyPosition()
-		{
-			var me = _currentParams.@params.players["i"];
-			myState.position = me.position;
-			myState.direction = me.direction;
-		}
-
-		#endregion
-
 		static void Main(string[] args)
 		{
 			//GameLogger.On();
@@ -41,15 +30,17 @@ namespace paperioBot
 					_startParams = JsonConvert.DeserializeObject<GameParams<WorldStartParams>>(input).@params;
 					CollisionHelper.SetStartParams(_startParams);
 					DirectionHelper.SetStartParams(_startParams);
-					direction = DirectionHelper.FindNewDirection(null, null);
+				} else if (step == 1)
+				{
+					_currentParams = JsonConvert.DeserializeObject<GameParams<WorldTickParams>>(input);
+					direction = DirectionHelper.FindFirstDirection(_currentParams.@params);
 				}
 				else
 				{
 					try
 					{
 						_currentParams = JsonConvert.DeserializeObject<GameParams<WorldTickParams>>(input);
-						GetMyPosition();
-						direction = DirectionHelper.FindNewDirection(myState, _currentParams);
+						direction = DirectionHelper.FindNewDirection(_currentParams.@params);
 					}
 					catch (Exception)
 					{

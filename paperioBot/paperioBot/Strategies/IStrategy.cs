@@ -4,20 +4,22 @@ namespace paperioBot.Strategies
 {
 	internal abstract class Strategy
 	{
-		protected WorldTickParams _currentTickParams;
+		protected WorldTickParams CurrentTickParams;
 
 		public void MutateStates(WorldTickParams currentTickParams)
 		{
-			_currentTickParams = currentTickParams;
+			CurrentTickParams = currentTickParams;
 		}
 
 		public Strategy() {}
 
 		public Strategy(WorldTickParams currentTickParams)
 		{
-			_currentTickParams = currentTickParams;
+			CurrentTickParams = currentTickParams;
 		}
 
 		public abstract int SelectDirection(WorldStartParams straParams, State currentState);
+
+		public abstract int SelectFirstDirection(WorldStartParams straParams, State currentState);
 	}
 }

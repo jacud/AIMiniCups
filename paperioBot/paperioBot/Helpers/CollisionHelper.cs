@@ -41,12 +41,12 @@ namespace paperioBot.Helpers
 				return false;
 			}
 
-			if (currentState.position[0] < _startParams.width/2 + fieldCorrection[0] || currentState.position[1] <= fieldCorrection[1] + _startParams.width / 2)
+			if (currentState.position[0] <= fieldCorrection[0] || currentState.position[1] <= fieldCorrection[1])
 			{
 				return true;
 			}
 
-			if (currentState.position[0] >= _startParams.x_cells_count* _startParams.width - fieldCorrection[2] || currentState.position[1] >= _startParams.y_cells_count* _startParams.width - fieldCorrection[3])
+			if (currentState.position[0] > _startParams.x_cells_count* _startParams.width - fieldCorrection[2] || currentState.position[1] > _startParams.y_cells_count* _startParams.width - fieldCorrection[3])
 			{
 				return true;
 			}

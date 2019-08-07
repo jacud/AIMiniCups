@@ -8,11 +8,11 @@ namespace paperioBot.Helpers
 	{
 		#region Properties
 
-		private static string[] directions = new[] { "left", "right", "up", "down" };
+		private static readonly string[] _directions = new[] { "left", "right", "up", "down" };
 
-		private static Strategy _strategy = new CrazyRandomStrategy();
+		private static readonly Strategy _strategy = new GreedyCubeStrategy();
 
-		public static int DirectionsCount => directions.Length;
+		public static int DirectionsCount => _directions.Length;
 
 		private static WorldStartParams _startParams;
 
@@ -28,6 +28,15 @@ namespace paperioBot.Helpers
 			var y = FirstWay > 2 ? _startParams.speed * (FirstWay * 2 - 5) : 0;
 		}
 
+		private static State GetMyPosition(WorldTickParams tickParams)
+		{
+			var myState = new State();
+			var me = tickParams.players["i"];
+			myState.position = me.position;
+			myState.direction = me.direction;
+			return myState;
+		}
+
 		public static void SetStartParams(WorldStartParams startParams)
 		{
 			_startParams = startParams;
@@ -36,37 +45,49 @@ namespace paperioBot.Helpers
 
 		public static int Way(string direction)
 		{
-			return Array.IndexOf(directions,direction);
+			return Array.IndexOf(_directions,direction);
 		}
 
 		public static string Direction(int way)
 		{
-			return directions[way];
+			return _directions[way];
 		}
 
-		public static bool CheckIsDerectionsComplanar(int firstDirection, int secondDirection)
+		public static bool CheckIsDirectionsComplanar(int firstDirection, int secondDirection)
 		{
 			return (firstDirection / 2 == secondDirection / 2) && (firstDirection != secondDirection);
 		}
 
-		public static bool CheckIsDerectionsComplanar(string firstDirection, string secondDirection)
+		public static bool CheckIsDirectionsComplanar(string firstDirection, string secondDirection)
 		{
-			return CheckIsDerectionsComplanar(Way(firstDirection), Way(secondDirection));
+			return CheckIsDirectionsComplanar(Way(firstDirection), Way(secondDirection));
 		}
 
-		public static string FindNewDirection(State currentState, GameParams<WorldTickParams> currentParams)
+		public static string FindFirstDirection(WorldTickParams currentParams)
 		{
 
 			if (currentParams == null)
 			{
 				return null;
 			}
-			_strategy.MutateStates(currentParams.@params);
-			var newWay = _strategy.SelectDirection(_startParams, currentState);
-			if (FirstWay == -1)
+			_strategy.MutateStates(currentParams);
+			var currentState = GetMyPosition(currentParams);
+			var newWay = _strategy.SelectFirstDirection(_startParams, currentState);
+			FirstWay = newWay;
+			return Direction(newWay);
+		}
+
+		public static string FindNewDirection(WorldTickParams currentParams)
+		{
+
+			if (currentParams == null)
 			{
-				FirstWay = newWay;
+				return null;
 			}
+			_strategy.MutateStates(currentParams);
+			var currentState = GetMyPosition(currentParams);
+			var newWay = _strategy.SelectDirection(_startParams, currentState);
+
 			return Direction(newWay);
 		}
 

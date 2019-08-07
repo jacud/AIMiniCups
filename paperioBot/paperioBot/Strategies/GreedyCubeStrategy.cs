@@ -21,7 +21,7 @@ namespace paperioBot.Strategies
 
 		private int[] FindClosestVictimTail(WorldStartParams startParams, State currentState)
 		{
-			var players = _currentTickParams.players.Where(p => p.Key != "i");
+			var players = CurrentTickParams.players.Where(p => p.Key != "i");
 			var tails = players.SelectMany(p => p.Value.lines);
 			return tails.FirstOrDefault(t =>
 				(t[0] == currentState.position[0] && Math.Abs(t[1] - currentState.position[1]) == startParams.width) ||
@@ -73,8 +73,6 @@ namespace paperioBot.Strategies
 					}
 				}
 			}
-
-			throw new ArgumentOutOfRangeException();
 		}
 
 		private void ShiftPriorities(int currenWay)
@@ -89,26 +87,20 @@ namespace paperioBot.Strategies
 			directionPriority = newPriories;
 		}
 
+		public override int SelectFirstDirection(WorldStartParams startParams, State currentState)
+		{
+			fieldCorrection = new[] { 0, startParams.width, 0, 0 };
+			var way = FindShortestWayToBorder(startParams, currentState);
+			ShiftPriorities(way);
+			return directionPriority[0];
+		}
+
 		public override int SelectDirection(WorldStartParams startParams, State currentState)
 		{
-			var currentDirection = currentState.direction;
-			if (String.IsNullOrEmpty(currentDirection))
-			{
-				fieldCorrection = new[] {0, startParams.width, 0, 0};
-				var way = FindShortestWayToBorder(startParams, currentState);
-				ShiftPriorities(way);
-				return directionPriority[0];
-			}
-
-			var isSuicide = true;
+			bool isSuicide;
 			int index = directionPriority[priorityIndex];
-			if (skipStep)
-			{
-				skipStep = false;
-				return index;
-			}
 			var newState = MotionHelper.MoveToDirection(DirectionHelper.Direction(index), startParams.width, currentState);
-			isSuicide = CollisionHelper.CheckDirectionForSuicide(newState, _currentTickParams, fieldCorrection);
+			isSuicide = CollisionHelper.CheckDirectionForSuicide(newState, CurrentTickParams, fieldCorrection);
 			if (isSuicide)
 			{
 				skipStep = true;
