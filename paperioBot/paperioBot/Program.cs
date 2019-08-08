@@ -44,7 +44,7 @@ namespace paperioBot
 						direction = DirectionHelper.FindNewDirection(_currentParams.@params);
 						Console.WriteLine("{{\"command\": \"{0}\"}}", direction);
 					}
-					catch (Exception)
+					catch (Exception e)
 					{
 					}
 				}

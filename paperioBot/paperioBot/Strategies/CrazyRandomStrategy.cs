@@ -2,6 +2,7 @@
 using paperioBot.InternalClasses;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace paperioBot.Strategies
 {
@@ -23,10 +24,13 @@ namespace paperioBot.Strategies
 			int index = random.Next(0, DirectionHelper.DirectionsCount);
 			if (currentState != null && CurrentTickParams!= null)
 			{
-				var forbiddenDirections = new List<int>();
+				var forbiddenDirections = new List<int>{DirectionHelper.Way(currentState.direction)};
 				var isSuicide = true;
-				while (isSuicide)
+				while (isSuicide && forbiddenDirections.Count < DirectionHelper.DirectionsCount)
 				{
+					var pathFinder = new HunterPathFinder(startParams, CurrentTickParams);
+					var path = pathFinder.BuildWeightsAndReturnWay();
+					index = path.Any() ? path.First() : random.Next(0, DirectionHelper.DirectionsCount);
 					var newState = MotionHelper.MoveToDirection(DirectionHelper.Direction(index), startParams.width, currentState);
 					if (newState != null)
 					{
@@ -38,15 +42,6 @@ namespace paperioBot.Strategies
 						}
 
 						index = newIndex;
-					}
-
-					if (isSuicide && forbiddenDirections.Count < DirectionHelper.DirectionsCount)
-					{
-						forbiddenDirections.Add(index);
-						while (forbiddenDirections.Contains(index))
-						{
-							index = random.Next(0, DirectionHelper.DirectionsCount);
-						}
 					}
 				}
 			}

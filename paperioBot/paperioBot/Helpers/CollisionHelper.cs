@@ -26,7 +26,6 @@ namespace paperioBot.Helpers
 			}
 			var currentWay = DirectionHelper.Way(currentState.direction);
 			
-			//currentState.position[1] == 45 && currentState.position[0] == 435 
 			var tailBlocks = currentParams.players["i"].lines.Where(block =>
 			{
 				return (
