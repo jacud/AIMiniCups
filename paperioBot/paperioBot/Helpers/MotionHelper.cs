@@ -15,11 +15,11 @@ namespace paperioBot.Helpers
 			{
 				if (currentStateWay < 2)
 				{
-					newState.position[0] += (currentStateWay * 2 - 1) * stepSize + correctionDeltas[0];
+					newState.position[0] += correctionDeltas[0];
 				}
 				else
 				{
-					newState.position[1] -= (currentStateWay * 2 - 5) * stepSize + correctionDeltas[1];
+					newState.position[1] += correctionDeltas[1];
 				}
 			}
 

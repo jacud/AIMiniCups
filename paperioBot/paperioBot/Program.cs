@@ -34,6 +34,7 @@ namespace paperioBot
 				{
 					_currentParams = JsonConvert.DeserializeObject<GameParams<WorldTickParams>>(input);
 					direction = DirectionHelper.FindFirstDirection(_currentParams.@params);
+					Console.WriteLine("{{\"command\": \"{0}\"}}", direction);
 				}
 				else
 				{
@@ -41,6 +42,7 @@ namespace paperioBot
 					{
 						_currentParams = JsonConvert.DeserializeObject<GameParams<WorldTickParams>>(input);
 						direction = DirectionHelper.FindNewDirection(_currentParams.@params);
+						Console.WriteLine("{{\"command\": \"{0}\"}}", direction);
 					}
 					catch (Exception)
 					{
@@ -52,7 +54,6 @@ namespace paperioBot
 				GameLogger.Log(direction);
 				GameLogger.SavePartialLogs();
 				
-				Console.WriteLine("{{\"command\": \"{0}\"}}", direction);
 				step++;
 			}
 		}
