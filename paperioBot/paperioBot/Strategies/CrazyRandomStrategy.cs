@@ -16,7 +16,9 @@ namespace paperioBot.Strategies
 
 		public override int SelectFirstDirection(WorldStartParams startParams, State currentState)
 		{
-			return random.Next(0, DirectionHelper.DirectionsCount);
+			var pathFinder = new HunterPathFinder(startParams, CurrentTickParams);
+			var path = pathFinder.BuildWeightsAndReturnWay(false);
+			return path.Length >= 2 ? path[1] : random.Next(0, DirectionHelper.DirectionsCount);
 		}
 
 		public override int SelectDirection(WorldStartParams startParams, State currentState)
@@ -29,8 +31,9 @@ namespace paperioBot.Strategies
 				while (isSuicide && forbiddenDirections.Count < DirectionHelper.DirectionsCount)
 				{
 					var pathFinder = new HunterPathFinder(startParams, CurrentTickParams);
-					var path = pathFinder.BuildWeightsAndReturnWay().Reverse().ToArray();
-					index = path.Length > 2 ? path[1] : random.Next(0, DirectionHelper.DirectionsCount);
+					var isHunt = CurrentTickParams.players["i"].territory.Any(t => t[0] == currentState.position[0] && t[1] == currentState.position[1]);
+					var path = pathFinder.BuildWeightsAndReturnWay(!isHunt);
+					index = path.Length >= 2 ? path[1] : random.Next(0, DirectionHelper.DirectionsCount);
 					var newState = MotionHelper.MoveToDirection(DirectionHelper.Direction(index), startParams.width, currentState);
 					if (newState != null)
 					{

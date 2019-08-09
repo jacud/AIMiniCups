@@ -58,6 +58,19 @@ namespace paperioBot.Helpers
 			return (firstDirection / 2 == secondDirection / 2) && (firstDirection != secondDirection);
 		}
 
+		public static int GetComplanarWay(string direction)
+		{
+			var way = Way(direction);
+			switch (way)
+			{
+				case 0: return 1;
+				case 1: return 0;
+				case 2: return 3;
+				case 3: return 2;
+				default: return -1;
+			}
+		}
+
 		public static bool CheckIsDirectionsComplanar(string firstDirection, string secondDirection)
 		{
 			return CheckIsDirectionsComplanar(Way(firstDirection), Way(secondDirection));
