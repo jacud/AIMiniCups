@@ -29,8 +29,8 @@ namespace paperioBot.Strategies
 				while (isSuicide && forbiddenDirections.Count < DirectionHelper.DirectionsCount)
 				{
 					var pathFinder = new HunterPathFinder(startParams, CurrentTickParams);
-					var path = pathFinder.BuildWeightsAndReturnWay();
-					index = path.Any() ? path.First() : random.Next(0, DirectionHelper.DirectionsCount);
+					var path = pathFinder.BuildWeightsAndReturnWay().Reverse().ToArray();
+					index = path.Length > 2 ? path[1] : random.Next(0, DirectionHelper.DirectionsCount);
 					var newState = MotionHelper.MoveToDirection(DirectionHelper.Direction(index), startParams.width, currentState);
 					if (newState != null)
 					{

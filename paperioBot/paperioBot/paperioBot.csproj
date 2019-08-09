@@ -49,7 +49,7 @@
     <Compile Include="Helpers\CollisionHelper.cs" />
     <Compile Include="Helpers\DirectionHelper.cs" />
     <Compile Include="Helpers\GameLogger.cs" />
-    <Compile Include="Helpers\HuntHelper.cs" />
+    <Compile Include="Helpers\HunterPathFinder.cs" />
     <Compile Include="Helpers\MotionHelper.cs" />
     <Compile Include="InternalClasses\CellTypes.cs" />
     <Compile Include="InternalClasses\GameParams.cs" />
