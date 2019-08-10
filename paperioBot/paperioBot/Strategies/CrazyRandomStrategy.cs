@@ -31,20 +31,22 @@ namespace paperioBot.Strategies
 				while (isSuicide && forbiddenDirections.Count < DirectionHelper.DirectionsCount)
 				{
 					var pathFinder = new HunterPathFinder(startParams, CurrentTickParams);
-					var isHunt = CurrentTickParams.players["i"].territory.Any(t => t[0] == currentState.position[0] && t[1] == currentState.position[1]);
-					var path = pathFinder.BuildWeightsAndReturnWay(!isHunt);
-					index = path.Length >= 2 ? path[1] : random.Next(0, DirectionHelper.DirectionsCount);
+					var isAssult = CurrentTickParams.players["i"].territory.Any(t => t[0] == currentState.position[0] && t[1] == currentState.position[1]);
+					var path = pathFinder.BuildWeightsAndReturnWay(!isAssult);
+					index = path?.FirstOrDefault() ?? random.Next(0, DirectionHelper.DirectionsCount);
 					var newState = MotionHelper.MoveToDirection(DirectionHelper.Direction(index), startParams.width, currentState);
 					if (newState != null)
 					{
 						isSuicide = CollisionHelper.CheckDirectionForSuicide(newState, CurrentTickParams);
-						var newIndex = DirectionHelper.Way(newState.direction);
-						if (newIndex != index)
+						if (isSuicide)
 						{
-							forbiddenDirections.Add(index);
+							var newIndex = DirectionHelper.Way(newState.direction);
+							if (newIndex != index)
+							{
+								forbiddenDirections.Add(index);
+							}
+							index = newIndex;
 						}
-
-						index = newIndex;
 					}
 				}
 			}

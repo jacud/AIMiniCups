@@ -25,6 +25,10 @@ namespace paperioBot
 			while (true)
 			{
 				var input = Console.ReadLine();
+				if (input == null)
+				{
+					return;
+				}
 				if (step == 0)
 				{
 					_startParams = JsonConvert.DeserializeObject<GameParams<WorldStartParams>>(input).@params;
@@ -38,15 +42,14 @@ namespace paperioBot
 				}
 				else
 				{
-					try
+					_currentParams = JsonConvert.DeserializeObject<GameParams<WorldTickParams>>(input);
+					if (_currentParams.type == "end_game")
 					{
-						_currentParams = JsonConvert.DeserializeObject<GameParams<WorldTickParams>>(input);
-						direction = DirectionHelper.FindNewDirection(_currentParams.@params);
-						Console.WriteLine("{{\"command\": \"{0}\"}}", direction);
+						return;
 					}
-					catch (Exception e)
-					{
-					}
+					direction = DirectionHelper.FindNewDirection(_currentParams.@params);
+					Console.WriteLine("{{\"command\": \"{0}\"}}", direction);
+
 				}
 
 				GameLogger.Log("Iteration #" + step);

@@ -1,5 +1,6 @@
 ﻿using paperioBot.InternalClasses;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace paperioBot.Helpers
@@ -35,14 +36,6 @@ namespace paperioBot.Helpers
 			var me = _currentTickParam.players["i"];
 			_me = new[] { me.position[0] / _startParams.width, me.position[1] / _startParams.width };
 
-			battleField[_me[0]][_me[1]] = (int)CellTypes.Me;
-
-			foreach (var position in me.lines)
-			{
-				battleField[position[0] / _startParams.width][position[1] / _startParams.width] =
-					(int)CellTypes.MyTail;
-			}
-
 			foreach (var position in me.territory)
 			{
 				battleField[position[0] / _startParams.width][position[1] / _startParams.width] =
@@ -67,6 +60,14 @@ namespace paperioBot.Helpers
 						(int)CellTypes.OpponentTerritory;
 				}
 			}
+
+			foreach (var position in me.lines)
+			{
+				battleField[position[0] / _startParams.width][position[1] / _startParams.width] =
+					(int)CellTypes.MyTail;
+			}
+
+			battleField[_me[0]][_me[1]] = (int)CellTypes.Me;
 		}
 
 		private int FindDeathLimit()
@@ -85,12 +86,21 @@ namespace paperioBot.Helpers
 				foreach (var tail in me.lines)
 				{
 					var isMyTerritory = me.territory.Any(ter => ter[0] == tail[0] && ter[1]==tail[1]);
-					var distance = isMyTerritory? limit: Math.Abs(tail[0] / _startParams.width - playerPosition[0]) + Math.Abs(tail[1] / _startParams.width - playerPosition[1]) - 1;
+					var distance = isMyTerritory? limit: Math.Abs(tail[0] / _startParams.width - playerPosition[0]) + Math.Abs(tail[1] / _startParams.width - playerPosition[1]);
 					limit = Math.Min(limit, distance);
+				}
+
+				{
+					var isMyTerritory = me.territory.Any(ter => ter[0] == me.position[0] && ter[1] == me.position[1]);
+					var distanceToHead = isMyTerritory
+						? Int32.MaxValue
+						: Math.Abs(_me[0] - playerPosition[0]) +
+						  Math.Abs(_me[1] - playerPosition[1]);
+					limit = Math.Min(limit, distanceToHead);
 				}
 			}
 
-			return Math.Min(limit, lifeTimeLimit);
+			return Math.Min(limit, lifeTimeLimit-1);
 		}
 
 		private void SetWeightToNeightbourForHunt(int startX, int startY, int limit, int forbiddenWay)
@@ -104,6 +114,7 @@ namespace paperioBot.Helpers
 			{
 				(int)CellTypes.MyTail,
 				(int)CellTypes.Opponent,
+				(int)CellTypes.Me
 			};
 			//left
 			if (startX > 0 && !forbiddenTypes.Contains(battleField[startX - 1][startY]) && forbiddenWay != 0)
@@ -150,22 +161,25 @@ namespace paperioBot.Helpers
 			}
 		}
 
-		private int[] SetWeightToNeightbourForHuntForAssult(int startX, int startY, int forbiddenWay, int[] bestResult)
+		private int[] SetWeightToNeightbourForAssult(int startX, int startY, int forbiddenWay, ref int[] bestResult)
 		{
 			int[] localBestResult = bestResult;
 			var currentWeight = weights[startX][startY];
+			List<int[]> goodWays = new List<int[]>();
 			var allowedTypesTypes = new int[]
 			{
-				(int)CellTypes.MyTerritory
+				(int)CellTypes.MyTerritory,
+				(int)CellTypes.Me,
 			};
+
 			//left
 			if (startX > 0 && allowedTypesTypes.Contains(battleField[startX][startY]) && forbiddenWay != 0)
 			{
 				var newWeight = weights[startX - 1][startY];
-				if (newWeight == 0 || newWeight > currentWeight + 1)
+				if (newWeight == 0 || newWeight > currentWeight + 1 && newWeight != Int32.MaxValue)
 				{
 					weights[startX - 1][startY] = newWeight == 0 ? currentWeight + 1 : Math.Min(newWeight, currentWeight + 1);
-					var localResult = SetWeightToNeightbourForHuntForAssult(startX - 1, startY, -1, bestResult);
+					var localResult = SetWeightToNeightbourForAssult(startX - 1, startY, 1, ref bestResult);
 					localBestResult = localResult[2] < localBestResult[2] && battleField[localResult[0]][localResult[1]] != (int)CellTypes.MyTerritory ? localResult : localBestResult;
 				}
 			}
@@ -173,11 +187,11 @@ namespace paperioBot.Helpers
 			if (startX < _startParams.x_cells_count - 1 && allowedTypesTypes.Contains(battleField[startX][startY]) && forbiddenWay != 1)
 			{
 				var newWeight = weights[startX + 1][startY];
-				if (newWeight == 0 || newWeight > currentWeight + 1)
+				if (newWeight == 0 || newWeight > currentWeight + 1 && newWeight != Int32.MaxValue)
 				{
 					weights[startX + 1][startY] =
 						newWeight == 0 ? currentWeight + 1 : Math.Min(newWeight, currentWeight + 1);
-					var localResult = SetWeightToNeightbourForHuntForAssult(startX, startY, -1, bestResult);
+					var localResult = SetWeightToNeightbourForAssult(startX + 1, startY, 0, ref bestResult);
 					localBestResult = localResult[2] < localBestResult[2] && battleField[localResult[0]][localResult[1]] != (int)CellTypes.MyTerritory ? localResult : localBestResult;
 				}
 			}
@@ -185,11 +199,11 @@ namespace paperioBot.Helpers
 			if (startY < _startParams.y_cells_count - 1 && allowedTypesTypes.Contains(battleField[startX][startY]) && forbiddenWay != 2)
 			{
 				var newWeight = weights[startX][startY + 1];
-				if (newWeight == 0 || newWeight > currentWeight + 1)
+				if (newWeight == 0 || newWeight > currentWeight + 1 && newWeight != Int32.MaxValue)
 				{
 					weights[startX][startY + 1] =
 						newWeight == 0 ? currentWeight + 1 : Math.Min(newWeight, currentWeight + 1);
-					var localResult = SetWeightToNeightbourForHuntForAssult(startX, startY, -1, bestResult);
+					var localResult = SetWeightToNeightbourForAssult(startX + 1, startY, 2, ref bestResult);
 					localBestResult = localResult[2] < localBestResult[2] && battleField[localResult[0]][localResult[1]] != (int)CellTypes.MyTerritory ? localResult : localBestResult;
 				}
 			}
@@ -197,27 +211,27 @@ namespace paperioBot.Helpers
 			if (startY > 0 && allowedTypesTypes.Contains(battleField[startX][startY]) && forbiddenWay != 3)
 			{
 				var newWeight = weights[startX][startY - 1];
-				if (newWeight == 0 || newWeight > currentWeight + 1)
+				if (newWeight == 0 || newWeight > currentWeight + 1 && newWeight != Int32.MaxValue)
 				{
 					weights[startX][startY - 1] =
 						newWeight == 0 ? currentWeight + 1 : Math.Min(newWeight, currentWeight + 1);
-					var localResult = SetWeightToNeightbourForHuntForAssult(startX, startY - 1, -1, bestResult);
+					var localResult = SetWeightToNeightbourForAssult(startX, startY - 1, 3, ref bestResult);
 					localBestResult = localResult[2] < localBestResult[2] && battleField[localResult[0]][localResult[1]] != (int)CellTypes.MyTerritory ? localResult : localBestResult;
 				}
 			}
 
 			localBestResult = localBestResult[2] < bestResult[2] ? localBestResult : bestResult;
 
-			return localBestResult[2] < currentWeight || battleField[startX][startY] == (int)CellTypes.MyTerritory ? localBestResult : new []{startX,startY,currentWeight};
+			return localBestResult[2] < currentWeight || allowedTypesTypes.Contains(battleField[startX][startY]) ? localBestResult : new []{startX,startY,currentWeight};
 		}
 
 		private int[] RollBackForAssult(int[] pos)
 		{
 			var ways = new int[1];
-			if (pos == null) return ways;
+			if (pos == null) return new int[0];
 			int[] newPos = new int[2];
 			var currentWeight = weights[pos[0]][pos[1]];
-			if (currentWeight == 0 || (pos[0] == _me[0] && pos[1] == _me[1])) return ways;
+			if (currentWeight == 0 || (pos[0] == _me[0] && pos[1] == _me[1])) return new int[0];
 			if (currentWeight == 1)
 			{
 				if (pos[0] == _me[0] - 1) ways[0] = 0;
@@ -254,44 +268,52 @@ namespace paperioBot.Helpers
 				ways[0] = 2;
 				newPos = new[] { pos[0], pos[1] - 1 };
 			}
-			return ways.Concat(RollBackForAssult(newPos)).ToArray();
+			return RollBackForAssult(newPos).Concat(ways).ToArray();
 		}
 
-		private int[] RollBack(int[] pos)
+		private int[] RollBack(int[] pos, int length, ref int value)
 		{
 			var ways = new int[1];
 			if (pos == null) return ways;
 			int[] newPos = new int[2];
 			var currentWeight = weights[pos[0]][pos[1]];
-			if (currentWeight == 0) return ways;
+			if (currentWeight == 0) return new int[0];
+			var forbiddenTypes = new int[]
+			{
+				(int) CellTypes.MyTerritory,
+				(int) CellTypes.Opponent,
+				(int) CellTypes.MyTail
+			};
 
 			//left
-			if (pos[0] > 0 && weights[pos[0] - 1][pos[1]] == currentWeight-1 && battleField[pos[0] - 1][pos[1]]!= (int)CellTypes.MyTerritory)
+			if (pos[0] > 0 && weights[pos[0] - 1][pos[1]] == currentWeight-1 && !forbiddenTypes.Contains(battleField[pos[0] - 1][pos[1]]))
 			{
 				ways[0] = 1;
 				newPos = new[] {pos[0] - 1, pos[1]};
 			} else
-				//right
-			if (pos[0] < _startParams.x_cells_count - 1 && weights[pos[0] + 1][pos[1]] == currentWeight - 1 && battleField[pos[0] + 1][pos[1]] != (int)CellTypes.MyTerritory)
+			//right
+			if (pos[0] < _startParams.x_cells_count - 1 && weights[pos[0] + 1][pos[1]] == currentWeight - 1 && !forbiddenTypes.Contains(battleField[pos[0] + 1][pos[1]]))
 			{
 				ways[0] = 0;
 				newPos = new[] { pos[0] + 1, pos[1] };
 			}
 			else
 				//up
-			if (pos[1] < _startParams.y_cells_count - 1 && weights[pos[0]][pos[1] + 1] == currentWeight - 1 && battleField[pos[0]][pos[1] +1] != (int)CellTypes.MyTerritory)
+			if (pos[1] < _startParams.y_cells_count - 1 && weights[pos[0]][pos[1] + 1] == currentWeight - 1 && !forbiddenTypes.Contains(battleField[pos[0]][pos[1]+1]))
 			{
 				ways[0] = 3;
 				newPos = new[] { pos[0], pos[1] + 1 };
 			}
 			else
 			//down
-			if (pos[1] > 0 && weights[pos[0]][pos[1] - 1] == currentWeight - 1 && battleField[pos[0]][pos[1]-1] != (int)CellTypes.MyTerritory)
+			if (pos[1] > 0 && weights[pos[0]][pos[1] - 1] == currentWeight - 1 && !forbiddenTypes.Contains(battleField[pos[0]][pos[1]-1]))
 			{
 				ways[0] = 2;
 				newPos = new[] { pos[0], pos[1] - 1 };
 			}
-			return ways.Concat(RollBack(newPos)).ToArray();
+
+			value += GetPositionValue(pos, length);
+			return RollBack(newPos, length - 1, ref value).Concat(ways).ToArray();
 		}
 
 		public int[] BuildWeightsAndReturnWay(bool isHunt)
@@ -308,29 +330,108 @@ namespace paperioBot.Helpers
 
 			if (isHunt)
 			{
-				SetWeightToNeightbourForHunt(_me[0], _me[1], maxLength, DirectionHelper.GetComplanarWay(_currentTickParam.players["i"].direction));
+				foreach (var line in _currentTickParam.players["i"].lines)
+				{
+					weights[line[0]/_startParams.width][line[1] / _startParams.width] = Int32.MaxValue;
+				}
+				weights[_me[0]][_me[1]] = 0;
+				SetWeightToNeightbourForHunt(_me[0], _me[1], maxLength + 10, DirectionHelper.GetComplanarWay(_currentTickParam.players["i"].direction));
 				var goodTerritories = _currentTickParam.players["i"].territory;
 				goodTerritories = goodTerritories
 					.Where(t => weights[t[0] / _startParams.width][t[1] / _startParams.width] > 0)
-					.OrderByDescending(t => weights[t[0] / _startParams.width][t[1] / _startParams.width])
 					.Select(t => new[]
 					{
 						t[0] / _startParams.width,
 						t[1] / _startParams.width,
 						weights[t[0] / _startParams.width][t[1] / _startParams.width]
 					});
-				selectedPathEnd = goodTerritories.FirstOrDefault();
-				path = RollBack(selectedPathEnd);
+				List<Tuple<int[],int, int>> tupls = new List<Tuple<int[], int, int>>();
+				foreach (var gt in goodTerritories)
+				{
+					var value = 0;
+					var track = RollBack(gt, gt[2], ref value);
+					var turns = CalcTurns(track);
+					tupls.Add(new Tuple<int[], int, int>(track,turns,value - turns));
+				}
+
+				if (tupls.Count(t => t.Item1.Length < maxLength) == 0)
+				{
+					tupls = tupls.OrderBy(t => t.Item1.Length).ToList();
+				}
+				else
+				{
+					tupls = tupls.Where(t => t.Item1.Length < maxLength).OrderByDescending(t => t.Item3).ToList();
+				}
+
+				path = tupls.FirstOrDefault().Item1;
 			}
 			else
 			{
-				selectedPathEnd = SetWeightToNeightbourForHuntForAssult(_me[0], _me[1],
-					DirectionHelper.GetComplanarWay(_currentTickParam.players["i"].direction), new[] {0, 0, 100});
-				path =  RollBackForAssult(selectedPathEnd);
+				int[] endPoint = new[] {0, 0, 100}; 
+				selectedPathEnd = SetWeightToNeightbourForAssult(_me[0], _me[1],
+					DirectionHelper.GetComplanarWay(_currentTickParam.players["i"].direction), ref endPoint);
+				path =  RollBackForAssult(selectedPathEnd).ToArray();
 			}
 
-			path = path.Reverse().ToArray();
 			return path;
+		}
+
+		private int CalcTurns(int[] track)
+		{
+			var turns = 0;
+			if (track.Length == 2)
+			{
+				return 0;
+			}
+
+			for (int i = 2; i < track.Length; i++)
+			{
+				if (track[i] != track[i - 1])
+				{
+					turns++;
+				}
+			}
+			return turns;
+		}
+
+		private int CalcPathValue(int[] track)
+		{
+			var turns = 0;
+			if (track.Length == 2)
+			{
+				return 0;
+			}
+
+			for (int i = 2; i < track.Length; i++)
+			{
+				if (track[i] != track[i - 1])
+				{
+					turns++;
+				}
+			}
+			return turns;
+		}
+
+		private int GetPositionValue(int[] pos, int extraTailLength)
+		{
+			var cellType = battleField[pos[0]][pos[1]];
+			switch (cellType)
+			{
+				case 1: return 5;
+				case 0: return 1;
+				case 2:
+				{
+					var width = _startParams.width;
+					var opponent = _currentTickParam.players.FirstOrDefault(p =>
+						p.Value.lines.Any(l => l[0] / width == pos[0] && l[1] / width == pos[1]));
+					if (_currentTickParam.players["i"].lines.Count() + extraTailLength < opponent.Value.lines.Count())
+					{
+						return 50;
+					}
+					return Int32.MinValue;
+				}
+				default: return 0;
+			}
 		}
 	}
 }

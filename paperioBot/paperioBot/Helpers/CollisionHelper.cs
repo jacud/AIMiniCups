@@ -25,6 +25,12 @@ namespace paperioBot.Helpers
 				return false;
 			}
 			var currentWay = DirectionHelper.Way(currentState.direction);
+
+			if (currentParams.players["i"].territory.Any(block => block[0] == currentState.position[0] &&
+			                                                      block[1] == currentState.position[1]))
+			{
+				return false;
+			}
 			
 			var tailBlocks = currentParams.players["i"].lines.Where(block =>
 			{
