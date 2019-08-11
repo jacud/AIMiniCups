@@ -15,8 +15,6 @@ namespace paperioBot.Strategies
 
 		private int priorityIndex = 0;
 
-		private bool skipStep = false;
-
 		private int[] fieldCorrection = new []{0,0,0,0};
 
 		private int[] FindClosestVictimTail(WorldStartParams startParams, State currentState)
@@ -103,7 +101,6 @@ namespace paperioBot.Strategies
 			isSuicide = CollisionHelper.CheckDirectionForSuicide(newState, CurrentTickParams, fieldCorrection);
 			if (isSuicide)
 			{
-				skipStep = true;
 				priorityIndex = (priorityIndex + 1) % directionPriority.Length;
 				return directionPriority[priorityIndex];
 			}

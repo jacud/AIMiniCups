@@ -37,7 +37,16 @@ namespace paperioBot
 				} else if (step == 1)
 				{
 					_currentParams = JsonConvert.DeserializeObject<GameParams<WorldTickParams>>(input);
-					direction = DirectionHelper.FindFirstDirection(_currentParams.@params);
+					try
+					{
+						direction = DirectionHelper.FindFirstDirection(_currentParams.@params);
+					}
+					catch(Exception e)
+					{
+						Console.WriteLine("{{\"command\": \"{0}\"}}", direction);
+						continue;
+					}
+
 					Console.WriteLine("{{\"command\": \"{0}\"}}", direction);
 				}
 				else
