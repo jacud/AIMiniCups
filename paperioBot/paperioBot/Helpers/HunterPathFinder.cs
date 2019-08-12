@@ -1,6 +1,5 @@
 ﻿using paperioBot.InternalClasses;
 using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -37,18 +36,8 @@ namespace paperioBot.Helpers
 			var me = _currentTickParam.players["i"];
 			_me = new[] { me.position[0] / _startParams.width, me.position[1] / _startParams.width };
 
-			foreach (var position in me.territory)
-			{
-				battleField[position[0] / _startParams.width][position[1] / _startParams.width] =
-					(int)CellTypes.MyTerritory;
-			}
-
 			foreach (var player in _currentTickParam.players.Where(p => p.Key != "i"))
 			{
-				var enemyPosition = player.Value.position;
-				battleField[enemyPosition[0] / _startParams.width][enemyPosition[1] / _startParams.width] =
-					(int)CellTypes.Opponent;
-
 				foreach (var position in player.Value.lines)
 				{
 					battleField[position[0] / _startParams.width][position[1] / _startParams.width] =
@@ -60,12 +49,22 @@ namespace paperioBot.Helpers
 					battleField[position[0] / _startParams.width][position[1] / _startParams.width] =
 						(int)CellTypes.OpponentTerritory;
 				}
+
+				var enemyPosition = player.Value.position;
+				battleField[enemyPosition[0] / _startParams.width][enemyPosition[1] / _startParams.width] =
+					(int)CellTypes.Opponent;
 			}
 
 			foreach (var position in me.lines)
 			{
 				battleField[position[0] / _startParams.width][position[1] / _startParams.width] =
 					(int)CellTypes.MyTail;
+			}
+
+			foreach (var position in me.territory)
+			{
+				battleField[position[0] / _startParams.width][position[1] / _startParams.width] =
+					(int)CellTypes.MyTerritory;
 			}
 
 			battleField[_me[0]][_me[1]] = (int)CellTypes.Me;
@@ -114,7 +113,6 @@ namespace paperioBot.Helpers
 			var forbiddenTypes = new int[]
 			{
 				(int)CellTypes.MyTail,
-				(int)CellTypes.Opponent,
 				(int)CellTypes.Me
 			};
 			//left
@@ -314,7 +312,7 @@ namespace paperioBot.Helpers
 			return RollBackForAssult(newPos).Concat(ways).ToArray();
 		}
 
-		private int[] RollBack(int[] pos, int length, ref int value)
+		private int[] RollBack(int[] pos, int length, int limit, ref int value)
 		{
 			var ways = new int[1];
 			if (pos == null) return ways;
@@ -355,8 +353,8 @@ namespace paperioBot.Helpers
 				newPos = new[] { pos[0], pos[1] - 1 };
 			}
 
-			value += GetPositionValue(pos, length);
-			return RollBack(newPos, length - 1, ref value).Concat(ways).ToArray();
+			value += GetPositionValue(pos, length, limit);
+			return RollBack(newPos, length - 1, limit, ref value).Concat(ways).ToArray();
 		}
 
 		public int[] BuildWeightsAndReturnWay(bool isHunt)
@@ -392,7 +390,7 @@ namespace paperioBot.Helpers
 				foreach (var gt in goodTerritories)
 				{
 					var value = 0;
-					var track = RollBack(gt, gt[2], ref value);
+					var track = RollBack(gt, gt[2], maxLength, ref value);
 					var turns = CalcTurns(track);
 					tupls.Add(new Tuple<int[], int, int>(track,turns,value - turns));
 				}
@@ -474,13 +472,43 @@ namespace paperioBot.Helpers
 			return turns;
 		}
 
-		private int GetPositionValue(int[] pos, int extraTailLength)
+		private int GetPositionValue(int[] pos, int extraTailLength, int limit)
 		{
 			var cellType = battleField[pos[0]][pos[1]];
 			switch (cellType)
 			{
-				case 1: return 5;
-				case 0: return 1;
+				case 1:
+				{
+					var width = _startParams.width;
+					var opponent = _currentTickParam.players.Where(p => p.Key != "i").Select(p =>
+					{
+						var distance = Math.Abs(p.Value.position[0] / width - pos[0]);
+						distance += Math.Abs(p.Value.position[1] / width - pos[1]);
+						distance += p.Value.lines.Count();
+						return new Tuple<Player, int>(p.Value, distance);
+					}).Where(t => t.Item2 < limit/2+1).OrderBy(t => t.Item2).FirstOrDefault();
+					if (opponent != null && opponent.Item1.lines.Count() < extraTailLength + weights[pos[0]][pos[1]])
+					{
+						return -1000;
+					}
+					return 5;
+				}
+				case 0:
+				{
+					var width = _startParams.width;
+					var opponent = _currentTickParam.players.Where(p => p.Key != "i").Select(p =>
+						{
+							var distance = Math.Abs(p.Value.position[0]/width - pos[0]);
+							distance+= Math.Abs(p.Value.position[1] / width - pos[1]);
+							distance += p.Value.lines.Count();
+							return new Tuple<Player, int>(p.Value, distance);
+						}).Where(t => t.Item2 < limit/2+1).OrderBy(t => t.Item2).FirstOrDefault();
+					if (opponent != null && opponent.Item1.lines.Count() < extraTailLength + weights[pos[0]][pos[1]])
+					{
+						return -1000;
+					}
+					return 1;
+				}
 				case 2:
 				{
 					var width = _startParams.width;
@@ -492,6 +520,23 @@ namespace paperioBot.Helpers
 					}
 					return Int32.MinValue;
 				}
+				case -1:
+				{
+					var isOpponentTerritory = false;
+					foreach (var playerKVP in _currentTickParam.players)
+					{
+						isOpponentTerritory = isOpponentTerritory || (
+	                      playerKVP.Value.territory.Any(t =>
+	                      t[0] / _startParams.width == pos[0] &&
+	                      t[1] / _startParams.width == pos[1]) ||
+						  (playerKVP.Value.lines.Count() < extraTailLength + weights[pos[0]][pos[1]])
+						);
+					}
+
+					if (isOpponentTerritory) return -1000;
+
+					return 50;
+				};
 				default: return 0;
 			}
 		}
