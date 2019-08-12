@@ -87,7 +87,7 @@ namespace paperioBot.Helpers
 				foreach (var tail in me.lines)
 				{
 					var isMyTerritory = me.territory.Any(ter => ter[0] == tail[0] && ter[1]==tail[1]);
-					var distance = isMyTerritory? limit: Math.Abs(tail[0] / _startParams.width - playerPosition[0]) + Math.Abs(tail[1] / _startParams.width - playerPosition[1]);
+					var distance = isMyTerritory? limit: Math.Abs(tail[0] / _startParams.width - playerPosition[0]) + Math.Abs(tail[1] / _startParams.width - playerPosition[1])-1;
 					limit = Math.Min(limit, distance);
 				}
 
@@ -205,7 +205,7 @@ namespace paperioBot.Helpers
 				if (Math.Abs(clossestOpponent.position[0] /_startParams.width - startX) + Math.Abs(clossestOpponent.position[1] / _startParams.width - startY) <=
 				    4 && clossestOpponent.lines.Count() == 0)
 				{
-					localBestResult[2] = 100;
+					localBestResult[2] = 1000;
 					return localBestResult;
 				}
 
